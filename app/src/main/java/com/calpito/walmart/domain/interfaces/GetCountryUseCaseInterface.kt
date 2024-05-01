@@ -4,5 +4,5 @@ import com.calpito.walmart.domain.model.CountryData
 import retrofit2.Response
 
 interface GetCountryUseCaseInterface {
-    suspend operator fun invoke(): Result<Response<List<CountryData>>>
+    suspend operator fun invoke(): Result<List<CountryData>>
 }

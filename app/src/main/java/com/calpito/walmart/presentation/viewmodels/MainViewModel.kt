@@ -34,20 +34,13 @@ class MainViewModel(private val getCountriesUseCase: GetCountryUseCaseInterface)
             _countries.value = UIState.Loading
             val result = getCountriesUseCase()
             result.fold(
-                onSuccess = { response ->
-                    if (response.isSuccessful) {
-                        val countries = response.body() ?: emptyList()
-                        _countries.value = UIState.Success(countries)
-                    } else {
-                        val errorMessage = "${response.code()} ${response.errorBody()}"
-                        _countries.value = UIState.Error(errorMessage)
-                    }
+                onSuccess = {
+                    //here we can format the data before setting it for the UI.
+                    _countries.value = UIState.Success(it)
                 },
-                onFailure = { exception ->
-                    // Handle exceptions that occurred during the network call
-                    _countries.value = UIState.Error("Exception occurred: ${exception.message}")
-                }
-            )
+                onFailure = {
+                    _countries.value = UIState.Error(it.toString())
+                })
         }
     }
 }

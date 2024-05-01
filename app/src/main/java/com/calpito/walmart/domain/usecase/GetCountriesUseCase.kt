@@ -6,5 +6,5 @@ import com.calpito.walmart.domain.interfaces.RepositoryInterface
 import retrofit2.Response
 
 class GetCountriesUseCase(private val repository: RepositoryInterface): GetCountryUseCaseInterface {
-    override suspend operator fun invoke(): Result<Response<List<CountryData>>> = repository.getCountries()
+    override suspend operator fun invoke(): Result<List<CountryData>> = repository.getListOfCountries()
 }
