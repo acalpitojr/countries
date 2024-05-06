@@ -1,8 +1,7 @@
 package com.calpito.walmart.domain.interfaces
 
-import com.calpito.walmart.domain.model.RecyclerData
-import retrofit2.Response
+import com.calpito.walmart.domain.model.CountryData
 
 interface GetCountryUseCaseInterface {
-    suspend operator fun invoke(): Result<List<RecyclerData.CountryData>>
+    suspend operator fun invoke(): Result<List<CountryData>>
 }

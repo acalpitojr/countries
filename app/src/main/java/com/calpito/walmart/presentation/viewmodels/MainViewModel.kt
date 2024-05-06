@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val getCountriesUseCase: GetCountryUseCaseInterface) : ViewModel() {
     //List for recyclerView
-    private val _countries = MutableStateFlow<UIState<List<RecyclerData.CountryData>>>(UIState.Loading)
-    val countries: StateFlow<UIState<List<RecyclerData.CountryData>>> = _countries
+    private val _recyclerData = MutableStateFlow<UIState<List<RecyclerData>>>(UIState.Loading)
+    val recyclerData: StateFlow<UIState<List<RecyclerData>>> = _recyclerData
 
 
     init {
@@ -31,15 +31,46 @@ class MainViewModel(private val getCountriesUseCase: GetCountryUseCaseInterface)
      */
     fun getCountries() {
         viewModelScope.launch {
-            _countries.value = UIState.Loading
+            _recyclerData.value = UIState.Loading
             val result = getCountriesUseCase()
             result.fold(
                 onSuccess = {
                     //here we can format the data before setting it for the UI.
-                    _countries.value = UIState.Success(it)
+
+                    //we need to create a list for the recyclerView.
+                    //our recycler view will be  list of countries, but before each first character, we will have a header, which is the first letter of the country.
+                    //example, A, america, afdjskl, afjdkf, B, bfesj, bkvjdk, ETC
+                    //first sort the list
+                    it.sortedBy { it.name }
+                    //itterate through all countries.  create a header if we are at a new letter, add country to the list
+                    val recyclerList = mutableListOf<RecyclerData>()
+                    var currentHeaderChar: Char? = null
+                    for (country in it) {
+                        val firstChar = country.name?.get(0)
+                        if (firstChar != currentHeaderChar) {
+                            currentHeaderChar = firstChar
+                            //add a header to the list
+                            val header = RecyclerData.CountryHeader("$currentHeaderChar")
+                            recyclerList.add(header)
+                        }
+
+                        recyclerList.add(
+                            RecyclerData.CountryData(
+                                name = country.name,
+                                code = country.code,
+                                currency = country.currency,
+                                flag = country.flag,
+                                language = country.language,
+                                region = country.region,
+                                capital = country.capital
+                            )
+                        )
+                    }
+
+                    _recyclerData.value = UIState.Success(recyclerList)
                 },
                 onFailure = {
-                    _countries.value = UIState.Error(it.toString())
+                    _recyclerData.value = UIState.Error(it.toString())
                 })
         }
     }

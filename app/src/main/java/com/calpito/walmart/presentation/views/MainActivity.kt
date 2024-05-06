@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 * */
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var  mainViewModel: MainViewModel
+    private lateinit var mainViewModel: MainViewModel
     private lateinit var adapter: recyclerViewAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
      * 3. Sets up interaction for the retry button to re-fetch country data when an error occurs:
      *    - Assigns a click listener to the retry button which triggers the fetching of countries from the ViewModel.
      */
-    private fun initView(){
+    private fun initView() {
         //recycler view init
         adapter = recyclerViewAdapter()
         binding.rvCountries.layoutManager = LinearLayoutManager(this)
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         //VIEW STATES
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                mainViewModel.countries.collect { state ->
+                mainViewModel.recyclerData.collect { state ->
                     when (state) {
                         is UIState.Loading -> showLoading()
                         is UIState.Success -> showData(state.data)
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
      *
      * @param countries The list of CountryData to be displayed in the RecyclerView.
      */
-    private fun showData(countries: List<RecyclerData.CountryData>) {
+    private fun showData(countries: List<RecyclerData>) {
         // Update adapter and hide loading indicator
         binding.progress.visibility = View.GONE
         binding.btnRetry.visibility = View.GONE
@@ -137,42 +137,97 @@ class MainActivity : AppCompatActivity() {
     }
 
     class recyclerViewAdapter :
-        RecyclerView.Adapter<recyclerViewAdapter.MyViewHolder>() {
+        RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-        inner class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
+        inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             //views to be filled
             val nameTextView: TextView? = itemView.findViewById(R.id.tv_name)
             val regionTextView: TextView? = itemView.findViewById(R.id.tv_region)
             val codeTextView: TextView? = itemView.findViewById(R.id.tv_code)
             val capitalTextView: TextView? = itemView.findViewById(R.id.tv_capital)
 
-            fun bind(country: RecyclerData.CountryData){
-                var countryName = country.name?:""
-                if(countryName.isNotEmpty()){
+            fun bind(country: RecyclerData.CountryData) {
+                var countryName = country.name ?: ""
+                if (countryName.isNotEmpty()) {
                     countryName = "$countryName,"
                 }
 
                 nameTextView?.text = countryName
-                regionTextView?.text = country.region?:""
-                codeTextView?.text = country.code?:""
-                capitalTextView?.text = country.capital?:""
+                regionTextView?.text = country.region ?: ""
+                codeTextView?.text = country.code ?: ""
+                capitalTextView?.text = country.capital ?: ""
             }
+        }
+
+        inner class HeaderViewHolder(itemView:View): RecyclerView.ViewHolder(itemView){
+            val tvLine1 = itemView.findViewById<TextView>(R.id.tv_line1)
+
+            fun bind(text:String){
+                tvLine1?.text = text
+            }
+
         }
 
         override fun getItemCount(): Int {
             return differ.currentList.size
         }
+
+        //we will use the id of the layout depending on which type of item we have
         override fun getItemViewType(position: Int): Int {
-            return position
+            val recyclerData = differ.currentList[position]
+            val viewType = when(recyclerData){
+                is CountryData -> {
+                    R.layout.county_item
+                }
+                is RecyclerData.CountryHeader -> {
+                    R.layout.header_item
+                }
+            }
+
+            return viewType
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-            val view=LayoutInflater.from(parent.context).inflate(R.layout.county_item, parent, false)
-            return MyViewHolder(view)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            //create view holder depending on which layout we have
+           val viewHolder = when(viewType){
+                R.layout.county_item->{
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.county_item, parent, false)
+                    MyViewHolder(view)
+                }
+                R.layout.header_item->{
+                    val view = LayoutInflater.from(parent.context).inflate(R.layout.header_item, parent, false)
+                    HeaderViewHolder(view)
+                }
+
+               else -> {
+                   val view = LayoutInflater.from(parent.context).inflate(R.layout.county_item, parent, false)
+                   MyViewHolder(view)
+                   //OR WE CAN THROW
+                   /*throw IllegalStateException("Unknown view type $viewType")*/
+               }
+           }
+
+            return viewHolder
         }
 
-        override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-           holder.bind(differ.currentList[position])
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            //get the data, then determine which view holder to create
+            val recyclerData = differ.currentList[position]
+            when (recyclerData) {
+                is RecyclerData.CountryData -> {
+                    //bind data to country holder
+                    (holder as MyViewHolder).bind(recyclerData)
+                }
+
+                is RecyclerData.CountryHeader -> {
+                    //bind data to header holder
+                    (holder as HeaderViewHolder).bind(recyclerData.text)
+
+                }
+
+            }
+
+
         }
 
 
@@ -181,27 +236,54 @@ class MainActivity : AppCompatActivity() {
         and AsyncListDiffer for handling these differences asynchronously and efficiently
         updating the UI. The submitList method is a convenient way to submit a
         new list for calculation and update.*/
-        private val diffCallback = object : DiffUtil.ItemCallback<RecyclerData.CountryData>() {
-            override fun areItemsTheSame(oldItem: CountryData, newItem: CountryData): Boolean {
+        private val diffCallback = object : DiffUtil.ItemCallback<RecyclerData>() {
+            override fun areItemsTheSame(oldItem: RecyclerData, newItem: RecyclerData): Boolean {
                 var result = false
-                if (oldItem.name == newItem.name) {
-                    result = true
+                when {
+                    oldItem is RecyclerData.CountryData && newItem is RecyclerData.CountryData -> {
+                        if (oldItem.name == newItem.name) {
+                            result = true
+                        }
+
+                    }
+
+                    oldItem is RecyclerData.CountryHeader && newItem is RecyclerData.CountryHeader -> {
+                        if (oldItem.text == newItem.text) {
+                            result = true
+                        }
+                    }
+
+                    else -> {}
+
                 }
+
                 return result
             }
 
-            override fun areContentsTheSame(oldItem: CountryData, newItem: CountryData): Boolean {
+            override fun areContentsTheSame(oldItem: RecyclerData, newItem: RecyclerData): Boolean {
                 var result = false
-                if (oldItem.equals(newItem)) {
-                    result = true
+                when {
+                    oldItem is RecyclerData.CountryData && newItem is RecyclerData.CountryData -> {
+                        result = oldItem.name == newItem.name
+
+                    }
+
+                    oldItem is RecyclerData.CountryHeader && newItem is RecyclerData.CountryHeader -> {
+                        result = oldItem.text == newItem.text
+                    }
+
+                    else -> {}
+
                 }
+
+
                 return result
             }
         }
 
         private val differ = AsyncListDiffer(this, diffCallback)
 
-        fun submitList(list: List<CountryData>) = differ.submitList(list)
+        fun submitList(list: List<RecyclerData>) = differ.submitList(list)
     }
 }
 
