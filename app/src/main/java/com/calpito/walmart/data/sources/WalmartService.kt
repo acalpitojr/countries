@@ -1,6 +1,6 @@
 package com.calpito.walmart.data.sources
 
-import com.calpito.walmart.domain.model.CountryData
+import com.calpito.walmart.data.model.CountryResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -11,7 +11,7 @@ import retrofit2.http.GET
 interface WalmartApiInterface {
     /*https://gist.githubusercontent.com/peymano-wmt/32dcb892b06648910ddd40406e37fdab/raw/db25946fd77c5873b0303b858e861ce724e0dcd0/countries.json*/
     @GET("32dcb892b06648910ddd40406e37fdab/raw/db25946fd77c5873b0303b858e861ce724e0dcd0/countries.json")
-    suspend fun getCountries(): Response<List<CountryData>>
+    suspend fun getCountries(): Response<List<CountryResponse>>
 }
 
 object WalmartService {

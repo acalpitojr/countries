@@ -3,8 +3,8 @@ package com.calpito.walmart.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.calpito.walmart.domain.model.CountryData
 import com.calpito.walmart.domain.interfaces.GetCountryUseCaseInterface
+import com.calpito.walmart.domain.model.RecyclerData
 import com.calpito.walmart.domain.model.UIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val getCountriesUseCase: GetCountryUseCaseInterface) : ViewModel() {
     //List for recyclerView
-    private val _countries = MutableStateFlow<UIState<List<CountryData>>>(UIState.Loading)
-    val countries: StateFlow<UIState<List<CountryData>>> = _countries
+    private val _countries = MutableStateFlow<UIState<List<RecyclerData.CountryData>>>(UIState.Loading)
+    val countries: StateFlow<UIState<List<RecyclerData.CountryData>>> = _countries
 
 
     init {

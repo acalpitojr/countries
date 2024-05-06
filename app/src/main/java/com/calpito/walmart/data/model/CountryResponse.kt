@@ -1,9 +1,10 @@
-package com.calpito.walmart.domain.model
+package com.calpito.walmart.data.model
 
 import com.calpito.walmart.domain.model.Currency
 import com.calpito.walmart.domain.model.Language
 import com.google.gson.annotations.SerializedName
-data class CountryData (
+
+data class CountryResponse (
     @SerializedName("capital"  ) var capital  : String?   = null,
     @SerializedName("code"     ) var code     : String?   = null,
     @SerializedName("currency" ) var currency : Currency? = Currency(),

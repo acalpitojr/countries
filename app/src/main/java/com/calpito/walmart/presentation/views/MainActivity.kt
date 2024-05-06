@@ -15,11 +15,12 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.calpito.walmart.domain.model.CountryData
 import com.calpito.walmart.presentation.viewmodels.MainViewModelFactory
 import com.calpito.walmart.R
 import com.calpito.walmart.databinding.ActivityMainBinding
 import com.calpito.walmart.di.Dependencies
+import com.calpito.walmart.domain.model.RecyclerData
+import com.calpito.walmart.domain.model.RecyclerData.CountryData
 import com.calpito.walmart.domain.model.UIState
 import com.calpito.walmart.presentation.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
@@ -111,7 +112,7 @@ class MainActivity : AppCompatActivity() {
      *
      * @param countries The list of CountryData to be displayed in the RecyclerView.
      */
-    private fun showData(countries: List<CountryData>) {
+    private fun showData(countries: List<RecyclerData.CountryData>) {
         // Update adapter and hide loading indicator
         binding.progress.visibility = View.GONE
         binding.btnRetry.visibility = View.GONE
@@ -145,7 +146,7 @@ class MainActivity : AppCompatActivity() {
             val codeTextView: TextView? = itemView.findViewById(R.id.tv_code)
             val capitalTextView: TextView? = itemView.findViewById(R.id.tv_capital)
 
-            fun bind(country: CountryData){
+            fun bind(country: RecyclerData.CountryData){
                 var countryName = country.name?:""
                 if(countryName.isNotEmpty()){
                     countryName = "$countryName,"
@@ -180,7 +181,7 @@ class MainActivity : AppCompatActivity() {
         and AsyncListDiffer for handling these differences asynchronously and efficiently
         updating the UI. The submitList method is a convenient way to submit a
         new list for calculation and update.*/
-        private val diffCallback = object : DiffUtil.ItemCallback<CountryData>() {
+        private val diffCallback = object : DiffUtil.ItemCallback<RecyclerData.CountryData>() {
             override fun areItemsTheSame(oldItem: CountryData, newItem: CountryData): Boolean {
                 var result = false
                 if (oldItem.name == newItem.name) {

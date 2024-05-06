@@ -1,13 +1,13 @@
 package com.calpito.walmart.data.sources
 
+import com.calpito.walmart.data.model.CountryResponse
 import com.calpito.walmart.domain.interfaces.ApiInterface
-import com.calpito.walmart.domain.model.CountryData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class ApiImpl:ApiInterface {
-    override suspend fun getListOfCountries(): Result<Response<List<CountryData>>> {
+    override suspend fun getListOfCountries(): Result<Response<List<CountryResponse>>> {
         //call the api.  catch any exceptions
         val result = withContext(Dispatchers.IO){
             try {
